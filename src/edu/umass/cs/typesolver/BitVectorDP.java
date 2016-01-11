@@ -8,7 +8,10 @@ import java.util.Stack;
 import java.util.Map;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
+import edu.umd.cs.findbugs.ba.XClass;
+import edu.umd.cs.findbugs.ba.ch.ClassInfoRecorder;
 import edu.umd.cs.findbugs.ba.ch.TypeHierarchy;
 import edu.umd.cs.findbugs.classfile.ClassDescriptor;
 
@@ -18,12 +21,23 @@ public class BitVectorDP {
 	private BiMap<Integer, ClassDescriptor> id2cp;
 	private Stack<BitSet> s;
 	private Map<Relation, BitSet> mem;
+	private ClassInfoRecorder cirecorder;
 
-	public BitVectorDP(int nbits, BiMap<Integer, ClassDescriptor> id2dp) {
-		this.nbits = nbits;
-		this.id2cp = id2dp;
+	public BitVectorDP() {
 		this.s = new Stack<BitSet>();
 		mem = new HashMap<Relation, BitSet>();
+		id2cp = HashBiMap.create();
+		int index = 0;
+		int nonAbstractTypes = 0;
+		// we only want to non-abstract types in the bit vector
+		for(XClass cinfo : ClassInfoRecorder.getInstance().allClassInfo()) {
+			id2cp.put(index++, cinfo.getClassDescriptor());
+			if(!(cinfo.isAbstract())) {
+				nonAbstractTypes++;
+			}
+		}
+		this.nbits = nonAbstractTypes;
+		cirecorder = ClassInfoRecorder.getInstance();
 	}
 
 	void push(Relation r, ClassDescriptor t) {
@@ -80,7 +94,7 @@ public class BitVectorDP {
 			}
 		} else if(r instanceof TSubType || (r instanceof TNot && ((TNot)r).getArgument() instanceof TSubType)) {
 
-			if(r instanceof TSubType) {
+			if(r instanceof TNot) {
 				ClassDescriptor type = ((TSubType)(((TNot) r).getArgument())).getArgument();
 				int t = id2cp.inverse().get(type);
 				for(Integer d: descendsOf(t)) {
@@ -107,7 +121,8 @@ public class BitVectorDP {
 			Set<ClassDescriptor> subtypes = TypeHierarchy.getInstance().getSubtypes(dp);
 
 			for(ClassDescriptor cdp: subtypes) {
-				res.add(id2cp.inverse().get(cdp));
+				if(!(cirecorder.getXClass(cdp).isAbstract()))
+					res.add(id2cp.inverse().get(cdp));
 			}
 		} catch(ClassNotFoundException e) {
 			throw new IllegalStateException("Should not happen, unknown type!");

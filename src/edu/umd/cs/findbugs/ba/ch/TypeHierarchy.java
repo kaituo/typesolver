@@ -130,7 +130,7 @@ public class TypeHierarchy {
 		if (typeVertex == null) {
 			// We have never tried to resolve this ClassVertex before.
 			// Try to find the XClass for this class.
-			XClass xclass = ClassInfoAnalysis.getInstance().getXClass(
+			XClass xclass = ClassInfoRecorder.getInstance().getXClass(
 					classDescriptor);
 			if (xclass == null) {
 				throw new IllegalStateException("We don't have info for "
@@ -254,7 +254,7 @@ public class TypeHierarchy {
 		if (superclassVertex == null) {
 			// Haven't encountered this class previously.
 
-			XClass superclassXClass = ClassInfoAnalysis.getInstance()
+			XClass superclassXClass = ClassInfoRecorder.getInstance()
 					.getXClass(superclassDescriptor);
 			if (superclassXClass == null) {
 				// Inheritance graph will be incomplete.

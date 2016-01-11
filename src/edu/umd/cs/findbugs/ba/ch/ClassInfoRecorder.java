@@ -1,5 +1,6 @@
 package edu.umd.cs.findbugs.ba.ch;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,22 +8,22 @@ import edu.umd.cs.findbugs.classfile.ClassDescriptor;
 import edu.umd.cs.findbugs.classfile.analysis.ClassInfo;
 import edu.umd.cs.findbugs.ba.XClass;
 
-public class ClassInfoAnalysis {
-	private static ClassInfoAnalysis instance = null;
+public class ClassInfoRecorder {
+	private static ClassInfoRecorder instance = null;
 	Map<ClassDescriptor, XClass> cache;
 
-	private ClassInfoAnalysis() {
+	private ClassInfoRecorder() {
 		this.cache = new HashMap<ClassDescriptor, XClass>();
 	}
 
-	public static ClassInfoAnalysis getInstance() {
+	public static ClassInfoRecorder getInstance() {
 		if (instance == null) {
-			instance = new ClassInfoAnalysis();
+			instance = new ClassInfoRecorder();
 		}
 		return instance;
 	}
 
-	public XClass findOrCreateClassInfo(ClassDescriptor classDescriptor,
+	public XClass getOrCreateClassInfo(ClassDescriptor classDescriptor,
 			ClassDescriptor superclassDescriptor,
 			ClassDescriptor[] interfaceDescriptorList, int accessFlags,
 			ClassDescriptor immediateEnclosingClass) {
@@ -36,10 +37,16 @@ public class ClassInfoAnalysis {
 		classInfoBuilder.setInterfaceDescriptorList(interfaceDescriptorList);
 		classInfoBuilder.setAccessFlags(accessFlags);
 		classInfoBuilder.setImmediateEnclosingClass(immediateEnclosingClass);
-		return classInfoBuilder.build();
+		XClass cinfo = classInfoBuilder.build();
+		cache.put(classDescriptor, cinfo);
+		return cinfo;
 	}
 
 	public XClass getXClass(ClassDescriptor classDescriptor) {
 		return cache.get(classDescriptor);
+	}
+
+	public Collection<XClass> allClassInfo() {
+		return cache.values();
 	}
 }
