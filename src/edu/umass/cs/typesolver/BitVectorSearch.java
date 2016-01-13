@@ -31,10 +31,15 @@ public class BitVectorSearch {
 		// we only want non-abstract types in the bit vector
 		for(XClass cinfo : ClassInfoRecorder.getInstance().allClassInfo()) {
 			id2cp.put(index++, cinfo.getClassDescriptor());
-			if(!(cinfo.isAbstract())) {
-				nonAbstractTypes++;
+			if(MainConfig.NON_ABSTRACT_OPTIMIZATION) {
+				if(!(cinfo.isAbstract())) {
+					nonAbstractTypes++;
+				}
 			}
 		}
+
+		if(!(MainConfig.NON_ABSTRACT_OPTIMIZATION))
+			nonAbstractTypes = index;
 
 		BitVectorDP[] dps = new BitVectorDP[nObjs];
 		for(int i=0; i<nObjs; i++) {

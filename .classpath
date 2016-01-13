@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/guava-18.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="/home/kaituo/code/benchmarks/bcel/bcelr2012/bcelr1231616/target/bcel-6.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/trove-2.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

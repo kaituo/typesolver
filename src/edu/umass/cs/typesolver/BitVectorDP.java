@@ -113,8 +113,12 @@ public class BitVectorDP {
 			Set<ClassDescriptor> subtypes = TypeHierarchy.getInstance().getSubtypes(dp);
 
 			for(ClassDescriptor cdp: subtypes) {
-				if(!(cirecorder.getXClass(cdp).isAbstract()))
+				if(MainConfig.NON_ABSTRACT_OPTIMIZATION) {
+					if(!(cirecorder.getXClass(cdp).isAbstract()))
+						res.add(id2cp.inverse().get(cdp));
+				} else {
 					res.add(id2cp.inverse().get(cdp));
+				}
 			}
 		} catch(ClassNotFoundException e) {
 			throw new IllegalStateException("Should not happen, unknown type!");
