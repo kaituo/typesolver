@@ -18,34 +18,26 @@ import edu.umd.cs.findbugs.classfile.ClassDescriptor;
 
 public class BitVectorDP {
 	private int nbits;
-	private BiMap<Integer, ClassDescriptor> id2cp;
-	private Stack<BitSet> s;
-	private Map<Relation, BitSet> mem;
-	private ClassInfoRecorder cirecorder;
 
-	public BitVectorDP() {
+	private Stack<BitSet> s;
+	private Map<Expression, BitSet> mem;
+	private ClassInfoRecorder cirecorder;
+	private BiMap<Integer, ClassDescriptor> id2cp;
+
+	public BitVectorDP(int nonAbstractTypes, BiMap<Integer, ClassDescriptor> id2cp) {
 		this.s = new Stack<BitSet>();
-		mem = new HashMap<Relation, BitSet>();
-		id2cp = HashBiMap.create();
-		int index = 0;
-		int nonAbstractTypes = 0;
-		// we only want to non-abstract types in the bit vector
-		for(XClass cinfo : ClassInfoRecorder.getInstance().allClassInfo()) {
-			id2cp.put(index++, cinfo.getClassDescriptor());
-			if(!(cinfo.isAbstract())) {
-				nonAbstractTypes++;
-			}
-		}
+		mem = new HashMap<Expression, BitSet>();
 		this.nbits = nonAbstractTypes;
 		cirecorder = ClassInfoRecorder.getInstance();
+		this.id2cp = id2cp;
 	}
 
-	void push(Relation r, ClassDescriptor t) {
+	public void push(Expression r) {
 		BitSet B = makeB1();
 		if(mem.containsKey(r)) {
 			B = mem.get(r);
 		} else {
-			Relation neg = getComplement(r);
+			Expression neg = getComplement(r);
 			if(mem.containsKey(neg)) {
 				B = mem.get(neg);
 				B.flip(0, nbits);
@@ -58,29 +50,29 @@ public class BitVectorDP {
 		s.push(B);
 	}
 
-	BitSet pop() {
+	public BitSet pop() {
 		return s.pop();
 	}
 
-	boolean isSat() {
+	public boolean isSat() {
 		if(s.peek().isEmpty())
 			return true;
 		return false;
 	}
 
 	// will throw exception if there is no model, should use together with isSat()
-	ClassDescriptor getTypeInModel() {
+	public ClassDescriptor getTypeInModel() {
 		return id2cp.get(s.peek().nextSetBit(0));
 	}
 
-	Relation getComplement(Relation r) {
+	private Expression getComplement(Expression r) {
 		if(r instanceof TEqual || r instanceof TSubType)
-			return new TNot(r);
+			return new TNot(r.getObj(), r);
 		else
 			return ((TNot)r).getArgument();
 	}
 
-	BitSet BVH(Relation r) {
+	private BitSet BVH(Expression r) {
 		BitSet bs = makeB0();
 		if(r instanceof TEqual || (r instanceof TNot && ((TNot)r).getArgument() instanceof TEqual)) {
 			if(r instanceof TNot) {
@@ -112,7 +104,7 @@ public class BitVectorDP {
 		return bs;
 	}
 
-	List<Integer> descendsOf(int t) {
+	private List<Integer> descendsOf(int t) {
 		ClassDescriptor dp = id2cp.get(t);
 		List<Integer> res = new ArrayList<>();
 		if(dp == null)
@@ -130,17 +122,17 @@ public class BitVectorDP {
 		return res;
 	}
 
-	BitSet makeB1() {
+	private BitSet makeB1() {
 		BitSet bs = new BitSet(nbits);
 		bs.set(0, nbits);
 		return bs;
 	}
 
-	BitSet makeB0() {
+	private BitSet makeB0() {
 		return new BitSet(nbits);
 	}
 
-	void restart() {
+	public void restart() {
 		s.clear();
 		s.push(makeB1());
 	}

@@ -2,10 +2,11 @@ package edu.umass.cs.typesolver;
 
 import edu.umd.cs.findbugs.classfile.ClassDescriptor;
 
-public class TSubType implements Relation {
+public class TSubType extends Expression {
 	private ClassDescriptor argument;
 
-	private TSubType(ClassDescriptor arg) {
+	private TSubType(int Obj, ClassDescriptor arg) {
+		super(Obj);
 		argument = arg;
 	}
 

@@ -1,14 +1,16 @@
 package edu.umass.cs.typesolver;
 
-public class TNot implements Relation {
-	private Relation argument;
+public class TNot extends Expression {
+	private Expression argument;
 
-	public TNot(Relation arg) {
+	public TNot(int Obj, Expression arg) {
+		super(Obj);
 		argument = arg;
 	}
 
-	public Relation getArgument() {
+	public Expression getArgument() {
 		return argument;
 	}
+
 
 }

@@ -45,7 +45,16 @@ public class DescriptorFactory {
         }
     };
 
+    private final Map<String, ClassDescriptor> classDescriptorMap;
+
+    private final Map<String, ClassDescriptor> dottedClassDescriptorMap;
+
     private final MapCache<String, String> stringCache = new MapCache<String, String>(10000);
+
+    private DescriptorFactory() {
+        this.classDescriptorMap = new HashMap<String, ClassDescriptor>();
+        this.dottedClassDescriptorMap = new HashMap<String, ClassDescriptor>();
+    }
 
     public static String canonicalizeString(@CheckForNull String s) {
         if (s == null) {
@@ -59,4 +68,69 @@ public class DescriptorFactory {
         df.stringCache.put(s, s);
         return s;
     }
+
+    /**
+    * Get the singleton instance of the DescriptorFactory.
+    *
+    * @return the singleton instance of the DescriptorFactory
+    */
+   public static DescriptorFactory instance() {
+       return instanceThreadLocal.get();
+   }
+
+   public static void clearInstance() {
+       instanceThreadLocal.remove();
+   }
+
+   public Collection<ClassDescriptor> getAllClassDescriptors() {
+       return classDescriptorMap.values();
+   }
+
+   public void purge(Collection<ClassDescriptor> unusable) {
+       for (ClassDescriptor c : unusable) {
+           classDescriptorMap.remove(c.getClassName());
+           dottedClassDescriptorMap.remove(c.getClassName().replace('/', '.'));
+       }
+   }
+
+   public @Nonnull
+   ClassDescriptor getClassDescriptor(Class<?> actualClass) {
+       return getClassDescriptorForDottedClassName(actualClass.getName());
+   }
+
+   /**
+    * Get a ClassDescriptor for a class name in VM (slashed) format.
+    *
+    * @param className
+    *            a class name in VM (slashed) format
+    * @return ClassDescriptor for that class
+    */
+   public @Nonnull
+   ClassDescriptor getClassDescriptor(@SlashedClassName String className) {
+       assert className.indexOf('.') == -1;
+       className = canonicalizeString(className);
+       ClassDescriptor classDescriptor = classDescriptorMap.get(className);
+       if (classDescriptor == null) {
+           classDescriptor = new ClassDescriptor(className);
+           classDescriptorMap.put(className, classDescriptor);
+       }
+       return classDescriptor;
+   }
+
+   /**
+    * Get a ClassDescriptor for a class name in dotted format.
+    *
+    * @param dottedClassName
+    *            a class name in dotted format
+    * @return ClassDescriptor for that class
+    */
+   public ClassDescriptor getClassDescriptorForDottedClassName(@DottedClassName String dottedClassName) {
+       assert dottedClassName != null;
+       ClassDescriptor classDescriptor = dottedClassDescriptorMap.get(dottedClassName);
+       if (classDescriptor == null) {
+           classDescriptor = getClassDescriptor(dottedClassName.replace('.', '/'));
+           dottedClassDescriptorMap.put(dottedClassName, classDescriptor);
+       }
+       return classDescriptor;
+   }
 }

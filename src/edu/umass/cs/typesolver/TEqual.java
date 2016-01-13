@@ -2,11 +2,12 @@ package edu.umass.cs.typesolver;
 
 import edu.umd.cs.findbugs.classfile.ClassDescriptor;
 
-public class TEqual implements Relation {
+public class TEqual extends Expression {
 
 	private ClassDescriptor argument;
 
-	private TEqual(ClassDescriptor argument) {
+	private TEqual(int Obj, ClassDescriptor argument) {
+		super(Obj);
 		this.argument = argument;
 	}
 
